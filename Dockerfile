@@ -8,10 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
+
+# Set environment variables for build
+ENV GENERATE_SOURCEMAP=false
+ENV REACT_APP_API_URL=https://api.smiloai.com/api
 
 # Build the app
 RUN npm run build
