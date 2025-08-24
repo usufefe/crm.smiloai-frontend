@@ -28,7 +28,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
 
   // Check if user has the right role for CRM portal (temporarily disabled for testing)
-  if (false && user && !['sales-representative', 'sales-manager'].includes(user.role || '')) {
+  if (false && user && !['sales-representative', 'sales-manager'].includes(user?.role || '')) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
