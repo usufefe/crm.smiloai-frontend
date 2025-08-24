@@ -1,4 +1,4 @@
-# Multi-stage build for React app
+# Build stage
 FROM node:18-alpine AS builder
 
 # Set working directory
@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies with legacy peer deps to handle conflicts
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
@@ -15,26 +15,29 @@ COPY . .
 
 # Set environment variables for build
 ENV GENERATE_SOURCEMAP=false
-ENV REACT_APP_API_URL=https://api.smiloai.com/api
+ENV REACT_APP_API_URL=https://console.smiloai.com/api
 
 # Build the app
 RUN npm run build
 
-# Production stage with nginx
-FROM nginx:alpine
+# Production stage - serve with simple static server
+FROM node:18-alpine
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+# Install serve globally
+RUN npm install -g serve
 
 # Copy built app from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/build /app
 
-# Expose port 80
-EXPOSE 80
+# Set working directory
+WORKDIR /app
+
+# Expose port 3000 (serve default)
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start serve
+CMD ["serve", "-s", ".", "-l", "3000"]
